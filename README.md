@@ -8,6 +8,12 @@ Here's a list of some Quantum Machine learning projects , I did either for learn
 
 # Contents
 
+
+
+## Quantum Convolutional Neural Network with Data Re-Uplaoding Technique
+
+~write a little~
+
 ## Higgs Classification : 
 
 ~write something about it~
