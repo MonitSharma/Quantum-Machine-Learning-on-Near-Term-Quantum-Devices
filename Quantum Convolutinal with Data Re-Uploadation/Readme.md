@@ -1,4 +1,4 @@
-# Quantum Convolutional Neural Network with Data Re-Uploading Techniquw
+# Quantum Convolutional Neural Network with Data Re-Uploading Technique
 
 ## Why do we need Quantum Methods?
 
