@@ -28,6 +28,8 @@ simulations.
 
 
 ![](https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41467-017-02726-3/MediaObjects/41467_2017_2726_Fig1_HTML.jpg?as=webp)
+
+
 The conjectured phase diagram in quantum chromodynamics. In the region with high temperature and small baryon chemical potential, the phase transition between hadronic matter and quark–gluon plasma is a cross over according to lattice QCD calculations (blue dashed line in the small insert). In the region with low temperature and moderately high baryon chemical potential, the phase transition is first order (red line in the small insert). At low temperature and high baryon chemical potential, there might exist other phases, such as color superconductor
 
 
