@@ -35,6 +35,15 @@ Here's a list of some Quantum Machine learning projects , I did either for learn
 </a></td>
   </tr>
   
+  <tr>
+    <td class="tg-yw4l">3.</td>
+    <td class="tg-yw4l">Quantum Support Vector Machine</td>
+    <td class="tg-yw4l">Quantum Support Vector Machine model on High Energy Physics data</td>
+    <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Quantum%20Support%20Vector%20Machine%20on%20QCD">
+  <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" width = '' >
+</a></td>
+  </tr>
+  
   
   
  
