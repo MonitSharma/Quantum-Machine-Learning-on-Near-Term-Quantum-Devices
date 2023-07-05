@@ -1,7 +1,7 @@
 [←←Back to Homepage](https://monitsharma.github.io/)
 
 
-# Quantum Machine Learning Projects
+# Quantum Machine Learning on Near Term Quantum Devices
 
 
 
@@ -18,6 +18,7 @@ Here's a list of some Quantum Machine learning projects , I did either for learn
     <th class="tg-yw4l"><b>Title</b></th>
     <th class="tg-yw4l"><b>Description</b></th>
     <th class="tg-yw4l"><b>Code</b></th>
+    <th class="tg-yw4l"><b>Medium</b></th>
   </tr>
   
   <tr>
@@ -27,14 +28,21 @@ Here's a list of some Quantum Machine learning projects , I did either for learn
     <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Galaxy%20Detection%20using%20Quantum%20Machine%20Learning">
   <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" width = '' >
 </a></td>
+<td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Galaxy%20Detection%20using%20Quantum%20Machine%20Learning">
+  <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white" width = '' >
+</a></td>
+    
   </tr>
   
   <tr>
     <td class="tg-yw4l">2.</td>
-    <td class="tg-yw4l">Quantum Convolutinal NN with Data Re-Uploading</td>
+    <td class="tg-yw4l">Quantum Classification with Data Re-Uploading</td>
     <td class="tg-yw4l">Quantum Convolutional Neural Network with Data Re-Uploading Technique</td>
     <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Quantum%20Convolutinal%20with%20Data%20Re-Uploadation">
   <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" width = '' >
+</a></td>
+    <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Galaxy%20Detection%20using%20Quantum%20Machine%20Learning">
+  <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white" width = '' >
 </a></td>
   </tr>
   
@@ -44,6 +52,21 @@ Here's a list of some Quantum Machine learning projects , I did either for learn
     <td class="tg-yw4l">Quantum Support Vector Machine model on High Energy Physics data</td>
     <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Quantum%20Support%20Vector%20Machine%20on%20QCD">
   <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" width = '' >
+</a></td>
+    <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Galaxy%20Detection%20using%20Quantum%20Machine%20Learning">
+  <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white" width = '' >
+</a></td>
+  </tr>
+
+  <tr>
+    <td class="tg-yw4l">3.</td>
+    <td class="tg-yw4l">Quantum CNN for Disease Detection</td>
+    <td class="tg-yw4l">Quantum Convolutional Neural Network for Pneumonia Detection</td>
+    <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Quantum%20Support%20Vector%20Machine%20on%20QCD">
+  <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" width = '' >
+</a></td>
+    <td class="tg-yw4l"><a href="https://github.com/MonitSharma/Quantum-Machine-Learning-Projects/tree/main/Galaxy%20Detection%20using%20Quantum%20Machine%20Learning">
+  <img src="https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white" width = '' >
 </a></td>
   </tr>
   
@@ -57,45 +80,4 @@ Here's a list of some Quantum Machine learning projects , I did either for learn
   
   
   
-  
-  
--------
--------
 
-# Basic Overview
-
-## Quantum Convolutional Neural Network with Data Re-Uplaoding Technique
-
-~write a little~
-
-## Higgs Classification : 
-
-~write something about it~
-
-
------
-
-## Galaxy Detection :
-
-~write more about it~
-
-
------
-
-## SUSY Dataset Classification:
-
-~write more about it~
-
-
------
-
-## Quantum Chromodynamics Data Classification
-
-~this was master's work~
-
-
-------
-
-## Quantum Distance Based Classifier
-
-~research and write~
