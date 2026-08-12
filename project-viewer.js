@@ -76,17 +76,20 @@
     '.resource-viewer-markdown li{margin:3px 0}.resource-viewer-markdown blockquote{margin:0 0 14px;padding-left:14px;border-left:2px solid #7d3f91;color:#66636d}',
     '.resource-viewer-markdown code{padding:2px 4px;background:#f2f0eb;font:12px "IBM Plex Mono",monospace}',
     '.resource-viewer-markdown pre{margin:0 0 14px;padding:14px;overflow:auto;background:#f2f0eb;font:12px/1.6 "IBM Plex Mono",monospace}',
+    '.resource-viewer-table{width:100%;margin:18px 0;border-collapse:collapse;font-size:.9rem}.resource-viewer-table th,.resource-viewer-table td{padding:9px 11px;border:1px solid #ddd9d4;text-align:left;vertical-align:top}.resource-viewer-table th{background:#f2f0eb;color:#7d3f91;font:500 10px/1.4 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase}.resource-viewer-table tr:nth-child(even){background:#f7f5f1}',
     '.resource-viewer-markdown a{color:#7d3f91;text-decoration:underline;text-underline-offset:3px}',
     '.resource-viewer-inline-image{display:block;max-width:100%;height:auto;margin:16px auto;border:1px solid #ddd9d4;background:#f2f0eb}',
+    '.resource-viewer-badge{width:auto;max-width:min(100%,220px);margin:0}.resource-viewer-math{overflow-x:auto;padding:12px 0;color:#2b2932;text-align:center}',
     '.resource-viewer-outputs{margin-top:14px;padding:14px;border-top:1px solid #ddd9d4;background:#f2f0eb}',
     '.resource-viewer-output-label{margin-bottom:8px;color:#7d3f91;font:10px/1.4 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase}',
     '.resource-viewer-output-text{margin:8px 0;padding:12px;overflow:auto;background:#fbfaf7;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 "IBM Plex Mono",monospace}',
+    '.resource-viewer-output-html{margin:8px 0;padding:12px;overflow:auto;background:#fbfaf7}.resource-viewer-output-html img{max-width:100%;height:auto}',
     '.resource-viewer-output-image{display:block;max-width:100%;height:auto;margin:10px auto;background:#fbfaf7}',
     '.resource-viewer-problem{display:grid;gap:18px}.resource-viewer-problem-section{border:1px solid #ddd9d4;background:#fbfaf7}.resource-viewer-problem h3{margin:0;padding:12px 16px;border-bottom:1px solid #ddd9d4;background:#f2f0eb;color:#7d3f91;font:500 11px/1.4 "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase}.resource-viewer-code-file{border:1px solid #ddd9d4;background:#fbfaf7}.resource-viewer-code-file summary{padding:12px 15px;cursor:pointer;color:#7d3f91;font:11px "IBM Plex Mono",monospace}.resource-viewer-code-file .resource-viewer-source{border-top:1px solid #ddd9d4}',
     '.resource-viewer-media{display:block;width:100%;max-height:59vh;min-height:260px;border:1px solid #ddd9d4;background:#f2f0eb}',
     'img.resource-viewer-media{height:auto;min-height:0;max-height:59vh;object-fit:contain}',
     'video.resource-viewer-media{height:auto}',
-    '.resource-viewer-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:15px 24px;border-top:1px solid #ddd9d4;background:#f2f0eb}',
+    '.resource-viewer-footer{display:none}',
     '.resource-viewer-actions{display:flex;flex-wrap:wrap;gap:10px}',
     '.resource-viewer-action{display:inline-block;padding:9px 12px;border:1px solid #2b2932;background:#2b2932;color:#fbfaf7;cursor:pointer;font:10px/1.2 "IBM Plex Mono",monospace;text-decoration:none}',
     '.resource-viewer-action.secondary{border-color:#bdb8b1;background:#fbfaf7;color:#2b2932}',
@@ -119,6 +122,11 @@
     return parts[parts.length - 1] || 'Resource';
   }
 
+  function languageLabel(value) {
+    var labels = { '.c': 'C', '.cc': 'C++', '.cpp': 'C++', '.cu': 'CUDA', '.java': 'Java', '.js': 'JavaScript', '.py': 'Python', '.rs': 'Rust', '.sql': 'SQL', '.ts': 'TypeScript', '.go': 'Go' };
+    return labels[extname(value)] || 'Source code';
+  }
+
   function normalizedKind(kind, pathValue) {
     var value = String(kind || '').toLowerCase().trim();
     if (value === 'notebook') value = 'ipynb';
@@ -128,15 +136,25 @@
     var ext = extname(pathValue);
     if (ext === '.ipynb') return 'ipynb';
     if (ext === '.pdf') return 'pdf';
+    if (ext === '.ppt' || ext === '.pptx' || ext === '.key') return 'slides';
     if (IMAGE_EXTENSIONS[ext]) return 'image';
     if (VIDEO_EXTENSIONS[ext]) return 'video';
     if (TEXT_EXTENSIONS[ext]) return ext === '.md' ? 'markdown' : 'code';
-    return 'text';
+    return 'unsupported';
   }
 
-  function safeUrl(value, base) {
+  function safeUrl(value, base, allowDataImage) {
     try {
-      return new URL(value, base || doc.baseURI).href;
+      var candidate = String(value || '').trim();
+      if (!candidate) return '';
+      if (allowDataImage && /^data:image\/(?:png|jpeg|jpg|gif|webp|svg\+xml);/i.test(candidate)) return candidate;
+      if (!/^[a-z][a-z0-9+.-]*:/i.test(candidate) && candidate.indexOf('//') !== 0 && candidate.charAt(0) !== '#') {
+        candidate = candidate.split('/').map(function (segment) {
+          try { return encodeURIComponent(decodeURIComponent(segment)); } catch (error) { return encodeURIComponent(segment); }
+        }).join('/');
+      }
+      var parsed = new URL(candidate, base || doc.baseURI);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : '';
     } catch (error) {
       return '';
     }
@@ -146,17 +164,120 @@
     parent.appendChild(doc.createTextNode(String(value || '')));
   }
 
-  function appendInlineMarkdown(parent, value, baseUrl) {
-    var source = String(value || '');
-    var pattern = /(!\[[^\]]*\]\([^\s)]+(?:\s+"[^"]*")?\)|`[^`]+`|\[[^\]]+\]\([^\s)]+(?:\s+"[^"]*")?\))/g;
+  function typesetMath(root) {
+    if (!root || !/[\\$]/.test(root.textContent || '')) return;
+    if (!global.MathJax) {
+      global.MathJax = {
+        tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['\\[', '\\]'], ['$$', '$$']], processEscapes: true, processEnvironments: true },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+      };
+    }
+    if (global.MathJax.typesetPromise) {
+      global.MathJax.typesetPromise([root]).catch(function () {});
+      return;
+    }
+    if (!global.__projectMathJaxPromise) {
+      global.__projectMathJaxPromise = new Promise(function (resolve, reject) {
+        var script = doc.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        (doc.head || doc.documentElement).appendChild(script);
+      });
+    }
+    global.__projectMathJaxPromise.then(function () {
+      if (global.MathJax && global.MathJax.typesetPromise) global.MathJax.typesetPromise([root]).catch(function () {});
+    }).catch(function () {});
+  }
+
+  var SAFE_HTML_TAGS = { a: 1, b: 1, blockquote: 1, br: 1, code: 1, div: 1, em: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1, hr: 1, i: 1, li: 1, ol: 1, p: 1, pre: 1, s: 1, span: 1, strong: 1, sub: 1, sup: 1, table: 1, tbody: 1, td: 1, th: 1, thead: 1, tr: 1, u: 1, ul: 1 };
+
+  function appendSanitizedNode(parent, node, baseUrl) {
+    if (node.nodeType === 3) {
+      appendText(parent, node.nodeValue);
+      return;
+    }
+    if (node.nodeType !== 1) return;
+    var tag = node.tagName.toLowerCase();
+    if (tag === 'script' || tag === 'style' || tag === 'iframe' || tag === 'object') return;
+    if (tag === 'img') {
+      var imageUrl = safeUrl(node.getAttribute('src') || '', baseUrl, true);
+      if (!imageUrl) return;
+      var image = doc.createElement('img');
+      image.className = 'resource-viewer-inline-image';
+      image.src = imageUrl;
+      image.alt = node.getAttribute('alt') || 'Figure from this resource';
+      image.loading = 'lazy';
+      parent.appendChild(image);
+      return;
+    }
+    if (!SAFE_HTML_TAGS[tag]) {
+      Array.prototype.forEach.call(node.childNodes, function (child) { appendSanitizedNode(parent, child, baseUrl); });
+      return;
+    }
+    var output = doc.createElement(tag);
+    if (tag === 'a') {
+      var linkUrl = safeUrl(node.getAttribute('href') || '', baseUrl);
+      if (linkUrl) output.href = linkUrl;
+    }
+    if (tag === 'pre') {
+      output.textContent = node.textContent || '';
+    } else {
+      Array.prototype.forEach.call(node.childNodes, function (child) { appendSanitizedNode(output, child, baseUrl); });
+    }
+    parent.appendChild(output);
+  }
+
+  function appendHtmlFragment(parent, source, baseUrl) {
+    var template = doc.createElement('template');
+    template.innerHTML = String(source || '');
+    Array.prototype.forEach.call(template.content.childNodes, function (node) { appendSanitizedNode(parent, node, baseUrl); });
+  }
+
+  function attachmentUrl(attachments, name) {
+    var entry = attachments && attachments[name];
+    if (!entry) return '';
+    var key = entry['image/png'] ? 'image/png' : entry['image/jpeg'] ? 'image/jpeg' : entry['image/svg+xml'] ? 'image/svg+xml' : '';
+    if (!key) return '';
+    var value = Array.isArray(entry[key]) ? entry[key].join('') : String(entry[key] || '');
+    return key === 'image/svg+xml' && value.indexOf('<svg') === 0 ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(value) : 'data:' + key + ';base64,' + value.replace(/\s/g, '');
+  }
+
+  function appendInlineMarkdown(parent, value, baseUrl, attachments) {
+    var source = String(value || '').replace(/_\*([^*]+)\*_/, '*$1*');
+    if (/<\/?(?:a|b|br|code|em|strong|sup|sub|u)\b/i.test(source)) {
+      appendHtmlFragment(parent, source, baseUrl);
+      return;
+    }
+    var pattern = /(\[!\[[^\]]*\]\([^\s)]+(?:\s+"[^"]*")?\)\]\([^\s)]+(?:\s+"[^"]*")?\)|!\[[^\]]*\]\([^\s)]+(?:\s+"[^"]*")?\)|`[^`]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*|_[^_\n]+_|\[[^\]]+\]\([^\s)]+(?:\s+"[^"]*")?\))/g;
     var last = 0;
     var match;
     while ((match = pattern.exec(source))) {
       appendText(parent, source.slice(last, match.index));
       var token = match[0];
-      if (token.indexOf('![') === 0) {
+      if (token.indexOf('[![') === 0) {
+        var nestedMatch = token.match(/^\[!\[([^\]]*)\]\(([^\s)]+)\)\]\(([^\s)]+)(?:\s+"[^"]*")?\)$/);
+        var nestedLink = nestedMatch ? safeUrl(nestedMatch[3], baseUrl) : '';
+        var nestedImage = nestedMatch ? (nestedMatch[2].indexOf('attachment:') === 0 ? attachmentUrl(attachments, nestedMatch[2].slice(11)) : safeUrl(nestedMatch[2], baseUrl, true)) : '';
+        if (nestedLink) {
+          var anchor = doc.createElement('a');
+          anchor.href = nestedLink;
+          if (nestedImage) {
+            var badge = doc.createElement('img');
+            badge.className = 'resource-viewer-inline-image resource-viewer-badge';
+            badge.src = nestedImage;
+            badge.alt = nestedMatch[1] || 'Linked resource';
+            badge.loading = 'lazy';
+            anchor.appendChild(badge);
+          } else {
+            appendText(anchor, nestedMatch[1] || 'Open link');
+          }
+          parent.appendChild(anchor);
+        } else appendText(parent, token);
+      } else if (token.indexOf('![') === 0) {
         var imageMatch = token.match(/^!\[([^\]]*)\]\(([^\s)]+)(?:\s+"[^"]*")?\)$/);
-        var imageUrl = imageMatch ? safeUrl(imageMatch[2], baseUrl) : '';
+        var imageUrl = imageMatch ? (imageMatch[2].indexOf('attachment:') === 0 ? attachmentUrl(attachments, imageMatch[2].slice(11)) : safeUrl(imageMatch[2], baseUrl, true)) : '';
         if (imageUrl) {
           var image = doc.createElement('img');
           image.className = 'resource-viewer-inline-image';
@@ -171,6 +292,14 @@
         var code = doc.createElement('code');
         appendText(code, token.slice(1, -1));
         parent.appendChild(code);
+      } else if (token.indexOf('**') === 0 || token.indexOf('__') === 0) {
+        var strong = doc.createElement('strong');
+        appendText(strong, token.slice(2, -2));
+        parent.appendChild(strong);
+      } else if (token.charAt(0) === '*' || token.charAt(0) === '_') {
+        var emphasis = doc.createElement('em');
+        appendText(emphasis, token.slice(1, -1));
+        parent.appendChild(emphasis);
       } else {
         var linkMatch = token.match(/^\[([^\]]+)\]\(([^\s)]+)(?:\s+"[^"]*")?\)$/);
         var href = linkMatch ? safeUrl(linkMatch[2], baseUrl) : '';
@@ -188,7 +317,15 @@
     appendText(parent, source.slice(last));
   }
 
-  function renderMarkdown(parent, source, baseUrl) {
+  function splitTableCells(line) {
+    return String(line || '').trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (cell) { return cell.trim(); });
+  }
+
+  function renderMarkdown(parent, source, baseUrl, attachments) {
+    if (/^\s*<(?:h[1-6]|div|p|ul|ol|pre|table|article|section)\b/i.test(String(source || ''))) {
+      appendHtmlFragment(parent, source, baseUrl);
+      return;
+    }
     var lines = String(source || '').replace(/\r\n?/g, '\n').split('\n');
     var paragraph = [];
     var list = null;
@@ -198,7 +335,7 @@
     function flushParagraph() {
       if (!paragraph.length) return;
       var p = doc.createElement('p');
-      appendInlineMarkdown(p, paragraph.join(' '), baseUrl);
+        appendInlineMarkdown(p, paragraph.join(' '), baseUrl, attachments);
       parent.appendChild(p);
       paragraph = [];
     }
@@ -217,18 +354,80 @@
       fenceLines = [];
     }
 
-    lines.forEach(function (line) {
+    for (var lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+      var line = lines[lineIndex];
       var fence = line.match(/^\s*```/);
       if (fence) {
         flushParagraph();
         closeList();
         if (inFence) flushFence();
         inFence = !inFence;
-        return;
+        continue;
       }
       if (inFence) {
         fenceLines.push(line);
-        return;
+        continue;
+      }
+      var mathStart = line.match(/^\s*\\begin\{(equation|equation\*|align|align\*|eqnarray|eqnarray\*|gather|gather\*|displaymath|math|matrix|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|smallmatrix|cases|aligned|alignedat|gathered|array)\}/);
+      if (mathStart) {
+        flushParagraph();
+        closeList();
+        var mathLines = [line];
+        var environmentName = mathStart[1].replace('*', '\\*');
+        var mathEnd = new RegExp('\\\\end\\\\{' + environmentName + '\\}');
+        while (lineIndex + 1 < lines.length) {
+          lineIndex += 1;
+          mathLines.push(lines[lineIndex]);
+          if (mathEnd.test(lines[lineIndex])) break;
+        }
+        var mathBody = mathLines.join('\n');
+        if (/^(equation|equation\*|align|align\*|eqnarray|eqnarray\*|gather|gather\*|displaymath|math)$/.test(mathStart[1])) {
+          mathBody = mathBody
+            .replace(new RegExp('\\\\begin\\\\{' + environmentName + '\\}'), '')
+            .replace(new RegExp('\\\\end\\\\{' + environmentName + '\\}'), '');
+        }
+        var mathBlock = doc.createElement('div');
+        mathBlock.className = 'resource-viewer-math';
+        appendText(mathBlock, '\\[' + mathBody + '\\]');
+        parent.appendChild(mathBlock);
+        continue;
+      }
+      var tableDivider = lines[lineIndex + 1] && /^\s*\|?\s*:?-{3,}/.test(lines[lineIndex + 1]) && lines[lineIndex + 1].indexOf('|') !== -1;
+      if (/^\s*(?:\*{3,}|-{3,}|_{3,})\s*$/.test(line) && !tableDivider) {
+        flushParagraph();
+        closeList();
+        parent.appendChild(doc.createElement('hr'));
+        continue;
+      }
+      if (line.indexOf('|') !== -1 && tableDivider) {
+        flushParagraph();
+        closeList();
+        var table = doc.createElement('table');
+        table.className = 'resource-viewer-table';
+        var thead = doc.createElement('thead');
+        var headerRow = doc.createElement('tr');
+        splitTableCells(line).forEach(function (cell) {
+          var th = doc.createElement('th');
+          appendInlineMarkdown(th, cell, baseUrl, attachments);
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        var tbody = doc.createElement('tbody');
+        lineIndex += 1;
+        while (lineIndex + 1 < lines.length && lines[lineIndex + 1].indexOf('|') !== -1 && lines[lineIndex + 1].trim()) {
+          lineIndex += 1;
+          var row = doc.createElement('tr');
+          splitTableCells(lines[lineIndex]).forEach(function (cell) {
+            var td = doc.createElement('td');
+            appendInlineMarkdown(td, cell, baseUrl, attachments);
+            row.appendChild(td);
+          });
+          tbody.appendChild(row);
+        }
+        table.appendChild(tbody);
+        parent.appendChild(table);
+        continue;
       }
       var heading = line.match(/^\s*(#{1,6})\s+(.+?)\s*#*\s*$/);
       var item = line.match(/^\s*[-*+]\s+(.+)$/);
@@ -241,7 +440,7 @@
         flushParagraph();
         closeList();
         var h = doc.createElement('h' + heading[1].length);
-        appendInlineMarkdown(h, heading[2], baseUrl);
+        appendInlineMarkdown(h, heading[2], baseUrl, attachments);
         parent.appendChild(h);
       } else if (item || numbered) {
         flushParagraph();
@@ -251,19 +450,19 @@
           list = doc.createElement(wantedTag);
         }
         var li = doc.createElement('li');
-        appendInlineMarkdown(li, (item || numbered)[1], baseUrl);
+        appendInlineMarkdown(li, (item || numbered)[1], baseUrl, attachments);
         list.appendChild(li);
       } else if (quote) {
         flushParagraph();
         closeList();
         var blockquote = doc.createElement('blockquote');
-        appendInlineMarkdown(blockquote, quote[1], baseUrl);
+        appendInlineMarkdown(blockquote, quote[1], baseUrl, attachments);
         parent.appendChild(blockquote);
       } else {
         closeList();
         paragraph.push(line.trim());
       }
-    });
+    }
     if (inFence) flushFence();
     flushParagraph();
     closeList();
@@ -372,6 +571,7 @@
     dialog.appendChild(meta);
     dialog.appendChild(body);
     dialog.appendChild(footer);
+    footer.remove();
     (doc.body || doc.documentElement).appendChild(dialog);
 
     this.dialog = dialog;
@@ -384,6 +584,7 @@
   };
 
   ProjectResourceViewer.prototype.onDocumentClick = function (event) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     var target = event.target;
     var link = target && target.closest ? target.closest('a.resource-link') : null;
     if (!link || !doc.documentElement.contains(link)) return;
@@ -392,7 +593,7 @@
   };
 
   ProjectResourceViewer.prototype.onPopState = function (event) {
-    if (event.state && event.state.projectViewerPath) {
+    if (this.isOpen() && event.state && event.state.projectViewerPath) {
       var links = doc.querySelectorAll('a.resource-link');
       var link = Array.prototype.find.call(links, function (candidate) {
         return candidate.dataset.path === event.state.projectViewerPath;
@@ -477,11 +678,6 @@
     this.titleNode.textContent = item.title;
     this.kindNode.textContent = item.kind.toUpperCase();
     this.pathNode.textContent = item.path;
-    this.originalLink.href = item.url;
-    this.originalLink.setAttribute('aria-label', 'Open original ' + item.fileName);
-    this.downloadLink.href = item.url;
-    this.downloadLink.download = item.fileName;
-    this.downloadLink.setAttribute('aria-label', 'Download ' + item.fileName);
     this.body.replaceChildren(this.statusNode('Loading resource…'));
     this.openDialog();
     this.load(item, requestId);
@@ -497,23 +693,29 @@
         this.renderMedia(item, requestId);
         return;
       }
+      if (item.kind === 'slides') {
+        this.renderUnsupported(item, 'Slide decks are kept in the repository but are not previewed in this browser viewer.');
+        return;
+      }
+      if (item.kind === 'unsupported') {
+        this.renderUnsupported(item, 'This file type is not previewed in the learning site.');
+        return;
+      }
       var response = await fetch(item.url, { signal: this.abortController ? this.abortController.signal : undefined });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       if (item.kind === 'ipynb') {
         var notebook = await response.json();
         if (requestId !== this.requestId) return;
         this.renderNotebook(item, notebook);
-        this.setDownloadFromText(JSON.stringify(notebook, null, 2), item.fileName, 'application/json');
         return;
       }
       var source = await response.text();
       if (requestId !== this.requestId) return;
       this.renderSource(item, source);
-      this.setDownloadFromText(source, item.fileName, response.headers.get('content-type') || 'text/plain;charset=utf-8');
     } catch (error) {
       if (requestId !== this.requestId) return;
       if (error && error.name === 'AbortError') return;
-      this.showError(item, 'The preview could not be loaded. You can still download the file or open the original resource.');
+      this.showError(item, 'The preview could not be loaded.');
     }
   };
 
@@ -525,6 +727,7 @@
       markdown.tabIndex = 0;
       renderMarkdown(markdown, source, item.url);
       this.body.appendChild(markdown);
+      typesetMath(markdown);
       return;
     }
     var pre = doc.createElement('pre');
@@ -559,7 +762,7 @@
       if (type === 'markdown') {
         var markdown = doc.createElement('div');
         markdown.className = 'resource-viewer-markdown';
-        renderMarkdown(markdown, source, item.url);
+        renderMarkdown(markdown, source, item.url, cell.attachments || {});
         article.appendChild(header);
         article.appendChild(markdown);
       } else {
@@ -577,6 +780,7 @@
       return;
     }
     this.body.appendChild(notebookView);
+    typesetMath(notebookView);
   };
 
   ProjectResourceViewer.prototype.renderNotebookOutputs = function (article, outputs, baseUrl) {
@@ -608,7 +812,7 @@
         outputWrap.appendChild(image);
         return;
       }
-      var text = data['text/markdown'] || data['text/plain'] || output.text || data['text/html'];
+      var text = data['text/markdown'] || data['text/html'] || data['text/plain'] || output.text;
       if (text) {
         var outputText = Array.isArray(text) ? text.join('') : String(text);
         if (data['text/markdown']) {
@@ -616,6 +820,11 @@
           markdown.className = 'resource-viewer-markdown';
           renderMarkdown(markdown, outputText, baseUrl);
           outputWrap.appendChild(markdown);
+        } else if (data['text/html']) {
+          var html = doc.createElement('div');
+          html.className = 'resource-viewer-output-html';
+          appendHtmlFragment(html, outputText, baseUrl);
+          outputWrap.appendChild(html);
         } else {
           var plain = doc.createElement('pre');
           plain.className = 'resource-viewer-output-text';
@@ -631,7 +840,7 @@
     var files = Array.isArray(item.problemFiles) ? item.problemFiles : [];
     var readme = files.find(function (file) { return /(^|\/)readme\.md$/i.test(file); });
     var notes = files.filter(function (file) { return /\.md$/i.test(file) && file !== readme; });
-    var codeFiles = files.filter(function (file) { return /\.(c|cc|cpp|cu|go|java|js|py|rs|ts)$/i.test(file); });
+    var codeFiles = files.filter(function (file) { return /\.(c|cc|cpp|cu|go|java|js|py|rs|sql|ts)$/i.test(file); });
     var sections = [];
     var fetchText = async function (file) {
       var url = safeUrl(file, doc.baseURI);
@@ -652,7 +861,7 @@
         var article = doc.createElement('article');
         article.className = 'resource-viewer-problem-section';
         var heading = doc.createElement('h3');
-        heading.textContent = sectionIndex === 0 ? 'Problem statement' : 'Notes';
+        heading.textContent = readme && sectionIndex === 0 ? 'Problem statement' : 'Notes';
         article.appendChild(heading);
         var markdown = doc.createElement('div');
         markdown.className = 'resource-viewer-markdown';
@@ -669,7 +878,7 @@
           details.className = 'resource-viewer-code-file';
           if (sectionIndex === 0) details.open = true;
           var summary = doc.createElement('summary');
-          summary.textContent = basename(section.file);
+          summary.textContent = languageLabel(section.file);
           details.appendChild(summary);
           var pre = doc.createElement('pre');
           pre.className = 'resource-viewer-source';
@@ -683,6 +892,7 @@
         return;
       }
       this.body.appendChild(view);
+      typesetMath(view);
     } catch (error) {
       if (requestId !== this.requestId || (error && error.name === 'AbortError')) return;
       this.showError(item, 'The problem files could not be loaded.');
@@ -712,9 +922,13 @@
     }
     media.addEventListener('error', function () {
       if (requestId !== this.requestId) return;
-      this.showError(item, 'This media could not be previewed in the browser. You can still download it or open the original resource.');
+      this.showError(item, 'This media could not be previewed in the browser.');
     }.bind(this), { once: true });
     this.body.appendChild(media);
+  };
+
+  ProjectResourceViewer.prototype.renderUnsupported = function (item, message) {
+    this.body.replaceChildren(this.statusNode(message));
   };
 
   ProjectResourceViewer.prototype.statusNode = function (message, isError) {
@@ -729,11 +943,6 @@
     this.titleNode.textContent = item && item.title ? item.title : 'Resource unavailable';
     this.kindNode.textContent = item && item.kind ? item.kind.toUpperCase() : 'RESOURCE';
     this.pathNode.textContent = item && item.path ? item.path : '';
-    if (item && item.url) {
-      this.originalLink.href = item.url;
-      this.downloadLink.href = item.url;
-      this.downloadLink.download = item.fileName || basename(item.path);
-    }
     var wrapper = doc.createElement('div');
     wrapper.appendChild(this.statusNode(message, true));
     if (item && item.url) {
@@ -742,17 +951,6 @@
     }
     this.body.replaceChildren(wrapper);
     this.openDialog();
-  };
-
-  ProjectResourceViewer.prototype.setDownloadFromText = function (source, fileName, mime) {
-    this.revokeDownloadUrl();
-    try {
-      this.downloadObjectUrl = URL.createObjectURL(new Blob([source], { type: mime || 'text/plain;charset=utf-8' }));
-      this.downloadLink.href = this.downloadObjectUrl;
-      this.downloadLink.download = fileName || 'resource.txt';
-    } catch (error) {
-      this.downloadLink.href = this.originalLink.href;
-    }
   };
 
   ProjectResourceViewer.prototype.revokeDownloadUrl = function () {
@@ -801,4 +999,40 @@
 
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
+}(typeof window !== 'undefined' ? window : this, typeof document !== 'undefined' ? document : null));
+
+/* Keep large problem libraries calm and discoverable. */
+(function (global, doc) {
+  'use strict';
+  if (!doc) return;
+  function bootProblemIndex() {
+    var grid = doc.querySelector('[data-problem-grid]');
+    if (!grid) return;
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.problem-link'));
+    var search = doc.querySelector('[data-problem-search]');
+    var language = doc.querySelector('[data-language-filter]');
+    var count = doc.querySelector('[data-problem-count]');
+    var more = doc.querySelector('[data-problem-more]');
+    var limit = 24;
+    function render() {
+      var term = search ? search.value.trim().toLowerCase() : '';
+      var selected = language ? language.value : 'all';
+      var matches = cards.filter(function (card) {
+        var languages = (card.getAttribute('data-languages') || '').split(',');
+        return (!term || card.textContent.toLowerCase().indexOf(term) !== -1) && (selected === 'all' || languages.indexOf(selected) !== -1);
+      });
+      cards.forEach(function (card) {
+        var position = matches.indexOf(card);
+        card.hidden = position === -1 || position >= limit;
+      });
+      if (count) count.textContent = matches.length ? 'Showing ' + Math.min(limit, matches.length) + ' of ' + matches.length + ' matching problems' : 'No matching problems';
+      if (more) more.hidden = matches.length <= limit;
+    }
+    if (search) search.addEventListener('input', function () { limit = 24; render(); });
+    if (language) language.addEventListener('change', function () { limit = 24; render(); });
+    if (more) more.addEventListener('click', function () { limit += 24; render(); });
+    render();
+  }
+  if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', bootProblemIndex, { once: true });
+  else bootProblemIndex();
 }(typeof window !== 'undefined' ? window : this, typeof document !== 'undefined' ? document : null));

@@ -87,6 +87,7 @@ footer a { color: var(--accent); }
   .repo-group summary { font-size: 1.18rem; }
 }
 
+
 /* Collection-first project pages */
 .project-hero { max-width: var(--maxw); padding-top: 34px; padding-bottom: clamp(72px, 11vw, 130px); }
 .project-hero .label { margin-top: 58px; }
@@ -427,4 +428,32 @@ summary:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Curated collections: cards fill their own space and never create blank tiles. */
+.resource-grid,
+.start-grid,
+.resource-cards,
+.resource-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 265px), 1fr)); gap: 12px; margin-top: 20px; border: 0; background: transparent; }
+.resource-card { min-height: 0; border: 1px solid var(--line); background: var(--paper); }
+.resource-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+.problem-tools { display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, 230px); gap: 16px; align-items: end; }
+.problem-tools .problem-search { margin-bottom: 0; }
+.problem-filter { display: grid; gap: 8px; padding: 15px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--ink-3); font: 10px var(--mono); letter-spacing: .07em; text-transform: uppercase; }
+.problem-filter select { width: 100%; border: 0; background: var(--paper); color: var(--ink); font: 400 1rem var(--serif); outline: none; }
+.problem-filter:focus-within { border-color: var(--accent); }
+.problem-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+.problem-grid .resource-card { min-height: 0; }
+.problem-more { display: block; margin: 22px auto 0; padding: 10px 16px; border: 1px solid var(--line); background: var(--paper); color: var(--accent-strong); cursor: pointer; font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+.problem-more:hover { border-color: var(--accent); background: var(--accent-soft); }
+.module-overflow { margin: 16px 0 4px; padding: 12px 0 0; border-top: 1px solid var(--line); }
+.collection-nav { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin-top: 22px; border: 0; background: transparent; }
+.collection-nav a { min-width: 0; border: 1px solid var(--line); background: var(--paper); }
+.collection-nav a:hover, .collection-nav a:focus-visible { border-color: var(--accent); }
+.resource-viewer-math { overflow-x: auto; padding: 12px 0; color: var(--ink); text-align: center; }
+.resource-viewer-badge { width: auto; max-width: min(100%, 220px); margin: 0; }
+@media (max-width: 700px) {
+  .resource-grid, .start-grid, .resource-cards, .resource-list, .problem-grid { grid-template-columns: 1fr; }
+  .problem-tools { grid-template-columns: 1fr; gap: 0; }
+  .problem-filter { margin-top: 10px; }
 }
