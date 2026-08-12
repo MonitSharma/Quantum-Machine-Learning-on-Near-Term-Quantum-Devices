@@ -137,6 +137,7 @@ footer a { color: var(--accent); }
 .resource-card .resource-title { display: block; max-width: 24ch; margin-top: 25px; overflow: visible; color: var(--ink); font: 400 clamp(1.35rem, 2.4vw, 1.85rem)/1.06 var(--serif); letter-spacing: -.02em; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
 .resource-card .resource-summary { display: block; margin-top: 10px; overflow: hidden; color: var(--ink-2); font: 10px/1.35 var(--mono); letter-spacing: .04em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .resource-card .resource-action { align-self: flex-start; margin-top: auto; padding: 0; border: 0; color: var(--accent-strong); font-size: 9px; }
+.resource-card .resource-action { display: none; }
 .resource-card:hover .resource-title { color: var(--accent-strong); }
 .problem-grid .resource-card { min-height: 145px; }
 .problem-grid .resource-card .resource-title { margin-top: 18px; }
@@ -450,6 +451,74 @@ summary:focus-visible,
 .collection-nav { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin-top: 22px; border: 0; background: transparent; }
 .collection-nav a { min-width: 0; border: 1px solid var(--line); background: var(--paper); }
 .collection-nav a:hover, .collection-nav a:focus-visible { border-color: var(--accent); }
+
+/* Project overview is the orientation point; repository metadata stays out of the learning path. */
+.project-readme { display: grid; grid-template-columns: minmax(120px, .25fr) minmax(0, 1fr); gap: 22px 42px; margin-top: 38px; padding-top: 26px; border-top: 1px solid var(--line); }
+.readme-label { color: var(--accent); font: 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.readme-copy { min-width: 0; max-width: 72ch; overflow-wrap: anywhere; color: var(--ink-2); line-height: 1.68; }
+.readme-copy p { margin: 0 0 14px; }
+.readme-copy h3 { margin: 0 0 12px; color: var(--ink); font: 400 1.55rem/1.08 var(--serif); }
+.readme-copy a { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 3px; }
+.readme-copy code { padding: .1em .3em; background: var(--accent-soft); font: .86em var(--mono); }
+.project-readme-full { display: grid; grid-template-columns: minmax(120px, .25fr) minmax(0, 1fr); gap: 22px 42px; margin-top: 0; padding-top: 0; }
+.readme-full-copy { min-width: 0; max-width: 78ch; color: var(--ink-2); line-height: 1.68; }
+.readme-full-copy h2, .readme-full-copy h3, .readme-full-copy h4, .readme-full-copy h5 { scroll-margin-top: 28px; color: var(--ink); font-family: var(--serif); font-weight: 400; line-height: 1.08; }
+.readme-full-copy h2 { margin: 0 0 18px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
+.readme-full-copy h3 { margin: 42px 0 14px; font-size: clamp(1.45rem, 2.3vw, 2rem); }
+.readme-full-copy h4, .readme-full-copy h5 { margin: 28px 0 12px; font-size: 1.25rem; }
+.readme-full-copy p { margin: 0 0 18px; }
+.readme-full-copy ul { margin: 0 0 24px; padding-left: 1.25rem; }
+.readme-full-copy li { margin: 0 0 13px; padding-left: 5px; }
+.readme-full-copy a { color: var(--accent-strong); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.readme-full-copy a:hover { color: var(--ink); }
+.readme-inline-toc { margin: 0 0 34px; padding: 18px 20px 14px; border: 1px solid var(--line); background: var(--accent-soft); }
+.readme-inline-toc .readme-label { margin-bottom: 10px; }
+.readme-inline-toc ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 28px; margin: 0; padding-left: 1.1rem; }
+.readme-inline-toc li { margin: 0; padding-left: 2px; }
+.readme-inline-toc a { color: var(--accent-strong); }
+.project-content:has(.project-readme-full) > .eyebrow,
+.project-content:has(.project-readme-full) > .readme-map-nav { display: none; }
+.resource-card .resource-title { max-width: 26ch; margin-top: 16px; font-size: clamp(1rem, 1.45vw, 1.18rem); line-height: 1.16; overflow: hidden; overflow-wrap: normal; text-overflow: ellipsis; text-wrap: balance; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.resource-card { min-height: 112px; padding: 16px; }
+.module-heading p { max-width: 58ch; }
+.module-heading h3 { max-width: 31ch; }
+.module-inline { display: grid; gap: 20px; margin: 0 0 26px; padding: 0; border: 0; background: transparent; }
+.module-description { max-width: 72ch; margin: 0; color: var(--ink-2); line-height: 1.65; }
+.module-links { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.module-links a { color: var(--accent-strong); font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; }
+.module-notes { margin: 0; padding: 0; border: 0; }
+.module-notes .readme-label { display: none; }
+.module-notes .readme-copy { max-width: 72ch; }
+.module-figures,
+.module-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: 16px; }
+.module-figures figure,
+.module-results figure { min-width: 0; margin: 0; padding: 12px; border: 1px solid var(--line); background: var(--paper); }
+.module-figures img,
+.module-results img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; background: var(--paper); }
+.module-figures figcaption,
+.module-results figcaption { margin-top: 8px; overflow: hidden; color: var(--ink-3); font: 9px/1.35 var(--mono); text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.collection-nav strong { line-height: 1.15; text-overflow: clip; white-space: normal; }
+.readme-map-nav { margin: 0 0 42px; }
+.readme-toc { margin: 0; padding: 18px 0 22px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.readme-toc-label { margin-bottom: 14px; color: var(--accent); font: 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.readme-toc-links { display: flex; flex-wrap: wrap; gap: 9px; }
+.readme-toc-links a { display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); color: var(--ink); font: 400 1rem/1.1 var(--serif); }
+.readme-toc-links a:hover, .readme-toc-links a:focus-visible { border-color: var(--accent); background: var(--accent-soft); outline: none; }
+.readme-toc-links span { color: var(--ink-3); font: 9px var(--mono); }
+.readme-resource-map { display: grid; gap: 58px; }
+.readme-resource-section { scroll-margin-top: 28px; }
+.readme-resource-heading { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+.readme-resource-heading > span, .readme-resource-heading small { color: var(--ink-3); font: 9px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.readme-resource-heading h3 { margin: 0; font: 400 clamp(1.45rem, 2.4vw, 2rem)/1.08 var(--serif); }
+.external-resource-card .resource-summary { max-width: 52ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.external-resource-card .resource-summary a { color: inherit; }
+@media (max-width: 700px) {
+  .project-readme-full { grid-template-columns: 1fr; gap: 12px; }
+  .readme-inline-toc ul { grid-template-columns: 1fr; }
+  .project-readme { grid-template-columns: 1fr; gap: 12px; margin-top: 28px; }
+  .readme-resource-heading { grid-template-columns: 28px minmax(0, 1fr); }
+  .readme-resource-heading small { grid-column: 2; }
+}
 .resource-viewer-math { overflow-x: auto; padding: 12px 0; color: var(--ink); text-align: center; }
 .resource-viewer-badge { width: auto; max-width: min(100%, 220px); margin: 0; }
 @media (max-width: 700px) {
