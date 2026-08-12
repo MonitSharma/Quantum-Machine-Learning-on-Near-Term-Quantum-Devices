@@ -177,8 +177,6 @@
         if (href) {
           var link = doc.createElement('a');
           link.href = href;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
           appendText(link, linkMatch[1]);
           parent.appendChild(link);
         } else {
@@ -277,6 +275,7 @@
     button.className = className;
     button.dataset.viewerAction = action;
     button.textContent = label;
+    if (action === 'close') button.setAttribute('aria-label', 'Close resource viewer');
     return button;
   }
 
@@ -294,8 +293,10 @@
     this.downloadObjectUrl = '';
     this.requestId = 0;
     this.initialized = false;
+    this.historyEntry = false;
     this.onDocumentClick = this.onDocumentClick.bind(this);
     this.onDocumentKeydown = this.onDocumentKeydown.bind(this);
+    this.onPopState = this.onPopState.bind(this);
     this.onDialogClick = this.onDialogClick.bind(this);
     this.onDialogCancel = this.onDialogCancel.bind(this);
     this.init();
@@ -307,6 +308,7 @@
     this.buildDialog();
     doc.addEventListener('click', this.onDocumentClick);
     doc.addEventListener('keydown', this.onDocumentKeydown);
+    global.addEventListener('popstate', this.onPopState);
     this.initialized = true;
     return this;
   };
@@ -358,13 +360,9 @@
     var download = doc.createElement('a');
     download.className = 'resource-viewer-action';
     download.textContent = 'Download';
-    download.target = '_blank';
-    download.rel = 'noopener';
     var original = doc.createElement('a');
     original.className = 'resource-viewer-action secondary';
     original.textContent = 'Open original';
-    original.target = '_blank';
-    original.rel = 'noopener';
     actions.appendChild(download);
     actions.appendChild(original);
     footer.appendChild(note);
@@ -391,6 +389,23 @@
     if (!link || !doc.documentElement.contains(link)) return;
     event.preventDefault();
     this.open(link);
+  };
+
+  ProjectResourceViewer.prototype.onPopState = function (event) {
+    if (event.state && event.state.projectViewerPath) {
+      var links = doc.querySelectorAll('a.resource-link');
+      var link = Array.prototype.find.call(links, function (candidate) {
+        return candidate.dataset.path === event.state.projectViewerPath;
+      });
+      if (link) {
+        this.open(link, { fromHistory: true });
+        return;
+      }
+    }
+    if (this.isOpen()) {
+      this.historyEntry = false;
+      this.close({ fromPopstate: true });
+    }
   };
 
   ProjectResourceViewer.prototype.onDocumentKeydown = function (event) {
@@ -434,7 +449,8 @@
     }
   };
 
-  ProjectResourceViewer.prototype.open = function (link) {
+  ProjectResourceViewer.prototype.open = function (link, options) {
+    options = options || {};
     var pathValue = link.dataset.path || link.getAttribute('href') || '';
     var url = safeUrl(pathValue, doc.baseURI);
     if (!url) {
@@ -448,6 +464,10 @@
       try { problemFiles = JSON.parse(link.dataset.problemFiles); } catch (error) { problemFiles = []; }
     }
     var item = { kind: kind, path: pathValue, url: url, title: title, fileName: link.dataset.fileName || basename(pathValue), problemFiles: problemFiles };
+    if (!options.fromHistory) {
+      global.history.pushState({ projectViewerPath: pathValue }, '', global.location.href);
+      this.historyEntry = true;
+    }
     this.previousFocus = doc.activeElement;
     this.requestId += 1;
     var requestId = this.requestId;
@@ -741,7 +761,12 @@
     this.downloadObjectUrl = '';
   };
 
-  ProjectResourceViewer.prototype.close = function () {
+  ProjectResourceViewer.prototype.close = function (options) {
+    options = options || {};
+    if (this.historyEntry && !options.fromPopstate) {
+      this.historyEntry = false;
+      global.history.back();
+    }
     this.requestId += 1;
     if (this.abortController && typeof this.abortController.abort === 'function') this.abortController.abort();
     this.abortController = null;
@@ -762,6 +787,7 @@
     this.close();
     doc.removeEventListener('click', this.onDocumentClick);
     doc.removeEventListener('keydown', this.onDocumentKeydown);
+    global.removeEventListener('popstate', this.onPopState);
     if (this.dialog) this.dialog.remove();
     this.dialog = null;
     this.initialized = false;

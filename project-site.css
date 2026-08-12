@@ -71,8 +71,10 @@ footer a { color: var(--accent); }
 .problem-archive .resource-grid { margin: 0 0 20px; }
 
 @media (max-width: 700px) {
-  nav { gap: 12px; }
-  nav a:first-child { display: none; }
+  .topbar-inner { min-height: 60px; flex-wrap: wrap; padding-block: 11px; }
+  nav { width: 100%; gap: 16px; overflow-x: auto; padding-bottom: 3px; scrollbar-width: none; }
+  nav::-webkit-scrollbar { display: none; }
+  nav a { flex: 0 0 auto; }
   .hero { padding-block: 70px; }
   .hero h1 { font-size: clamp(3.1rem, 16vw, 5rem); }
   .content, .repo-index-head { grid-template-columns: 1fr; }
